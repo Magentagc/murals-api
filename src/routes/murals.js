@@ -18,6 +18,22 @@ router.get('/:id', async (req, res) => {
   res.json(rows[0]);
 });
 
+// GET /murals/visited/:user_id
+router.get('/visited/:user_id', async (req, res) => {
+  const { user_id } = req.params;
+
+  const [rows] = await db.query(
+    `SELECT m.id, m.title, m.description, m.video_url, m.qr_code_url, mv.visited_at
+     FROM mural_visits mv
+     JOIN murals m ON m.id = mv.mural_id
+     WHERE mv.user_id = ?
+     ORDER BY mv.visited_at DESC`,
+    [user_id]
+  );
+
+  res.json(rows);
+});
+
 // POST /murals/:id/visit
 router.post('/:id/visit', async (req, res) => {
   const { id } = req.params;
