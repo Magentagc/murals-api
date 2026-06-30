@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 
-// GET /auth/validate
 router.get('/validate', (req, res) => {
   const authHeader = req.headers.authorization;
 

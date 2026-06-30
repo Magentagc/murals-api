@@ -1,8 +1,23 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
+const requireAuth = require('../middleware/auth');
 
-// GET /murals/:id
+router.get('/visited', requireAuth, async (req, res) => {
+  const { userId: user_id } = req.user;
+
+  const [rows] = await db.query(
+    `SELECT m.id, m.title, m.description, m.video_url, m.qr_code_url, mv.visited_at
+     FROM mural_visits mv
+     JOIN murals m ON m.id = mv.mural_id
+     WHERE mv.user_id = ?
+     ORDER BY mv.visited_at DESC`,
+    [user_id]
+  );
+
+  res.json(rows);
+});
+
 router.get('/:id', async (req, res) => {
   const { id } = req.params;
 
@@ -18,30 +33,9 @@ router.get('/:id', async (req, res) => {
   res.json(rows[0]);
 });
 
-// GET /murals/visited/:user_id
-router.get('/visited/:user_id', async (req, res) => {
-  const { user_id } = req.params;
-
-  const [rows] = await db.query(
-    `SELECT m.id, m.title, m.description, m.video_url, m.qr_code_url, mv.visited_at
-     FROM mural_visits mv
-     JOIN murals m ON m.id = mv.mural_id
-     WHERE mv.user_id = ?
-     ORDER BY mv.visited_at DESC`,
-    [user_id]
-  );
-
-  res.json(rows);
-});
-
-// POST /murals/:id/visit
-router.post('/:id/visit', async (req, res) => {
+router.post('/:id/visit', requireAuth, async (req, res) => {
   const { id } = req.params;
-  const { user_id } = req.body;
-
-  if (!user_id) {
-    return res.status(400).json({ error: 'user_id is required' });
-  }
+  const { userId: user_id } = req.user;
 
   const [mural] = await db.query('SELECT id FROM murals WHERE id = ?', [id]);
   if (mural.length === 0) {
