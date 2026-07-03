@@ -1,10 +1,18 @@
 require('dotenv').config();
 const express = require('express');
+const cors = require('cors');
 
 const muralsRouter = require('./routes/murals');
 const authRouter = require('./routes/auth');
 
 const app = express();
+
+const allowedOrigins = [
+  'http://localhost:8080',
+  'https://museourbanodememorias.com',
+];
+
+app.use(cors({ origin: allowedOrigins }));
 app.use(express.json());
 
 app.use('/api/murals', muralsRouter);
